@@ -19,6 +19,7 @@ import json
 import urllib2
 import base64
 import logging
+from urlparse import urlparse
 
 PREFIX = "elasticsearch"
 CLUSTERS = []
@@ -1287,12 +1288,24 @@ def configure_test(cluster):
     cluster.es_master_eligible = True
 
 
+def _default_port(url_scheme):
+    if url_scheme == "https":
+        return 443
+    elif url_scheme == "http":
+        return 80
+    else:
+        raise Exception("Unsupported URL scheme {}".format(url_scheme))
+
+
 if __name__ == '__main__':
     import sys
     c = Cluster()
-    # allow user to override ES host name for easier testing
+    # Allow user to override ES cluster URL for easier testing
     if len(sys.argv) > 1:
-        c.es_host = sys.argv[1]
+        parsed_url = urlparse(sys.argv[1])
+        c.es_url_scheme = parsed_url.scheme
+        c.es_port = parsed_url.port or _default_port(parsed_url.scheme)
+        c.es_host = parsed_url.hostname
     handle.verbose = True
     configure_test(c)
     collectd = CollectdMock()
