@@ -19,7 +19,6 @@ import json
 import urllib2
 import base64
 import logging
-import ssl
 
 PREFIX = "elasticsearch"
 CLUSTERS = []
@@ -952,12 +951,7 @@ class Cluster(object):
                                                   self.es_password)
                                                  ).replace('\n', '')
                 request.add_header("Authorization", "Basic %s" % authheader)
-            ctx = None
-            if self.es_url_scheme == "https":
-                ctx = ssl._create_unverified_context()
-                response = urllib2.urlopen(request, context=ctx, timeout=10)
-            else:
-                response = urllib2.urlopen(request, timeout=10)
+            response = urllib2.urlopen(request, timeout=10)
             log.info('Raw api response: %s' % response)
             return json.load(response)
         except (urllib2.URLError, urllib2.HTTPError), e:
